@@ -15,6 +15,6 @@ FLAGS="--phase=run --vid_dir=$VID_DIR --out_dir=$OUT_DIR --amplification_factor=
 if [ "$DYNAMIC_MODE" = yes ] ; then
     FLAGS="$FLAGS"" --velocity_mag"
 fi
-python main.py --config_file=configs/"$EXP_NAME".conf \
+python3 main.py --config_file=configs/"$EXP_NAME".conf \
     $FLAGS
 

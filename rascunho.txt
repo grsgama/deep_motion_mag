@@ -1,0 +1,79 @@
+filter_type: Type of filter to use. Can be one of "fir",
+                "butter", or "differenceOfIIR". For "differenceOfIIR",
+                fl and fh specifies rl and rh coefficients as in Wadhwa et al.
+
+
+
+Args:
+checkpoint_dir: checkpoint directory.
+vid_dir: directory containing video frames videos are processed in sorted order.
+out_dir: directory to place output frames and resulting video.
+amplification_factor: the amplification factor, with 0 being no change.
+fl: low cutoff frequency.
+fh: high cutoff frequency.
+fs: sampling rate of the video.
+n_filter_tap: number of filter tap to use.
+filter_type: Type of filter to use. Can be one of "fir", "butter", or "differenceOfIIR". For "differenceOfIIR", fl and fh specifies rl and rh coefficients as in Wadhwa et al.
+
+
+
+
+nyq = fs / 2.0
+        if filter_type == 'fir':
+            filter_b = firwin(n_filter_tap, [fl, fh], nyq=nyq, pass_zero=False)
+            filter_a = []
+        elif filter_type == 'butter':
+            filter_b, filter_a = butter(n_filter_tap, [fl/nyq, fh/nyq],
+                                        btype='bandpass')
+            filter_a = filter_a[1:]
+        elif filter_type == 'differenceOfIIR':
+            # This is a copy of what Neal did. Number of taps are ignored.
+            # Treat fl and fh as rl and rh as in Wadhwa's code.
+            # Write down the difference of difference equation in Fourier
+            # domain to proof this:
+            filter_b = [fh - fl, fl - fh]
+            filter_a = [-1.0*(2.0 - fh - fl), (1.0 - fl) * (1.0 - fh)]
+
+
+
+
+
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 1 differenceOfIIR
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 2 differenceOfIIR
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 3 differenceOfIIR
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 4 differenceOfIIR
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 5 differenceOfIIR
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 0.001 0.55 30 6 differenceOfIIR
+
+
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 1 2 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.1 1 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.001 0.01 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 10 20 30 2 differenceOfIIR
+
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.001 0.055 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.002 0.025 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.004 0.0125 30 2 differenceOfIIR && sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 200 0.008 0.0009 30 2 differenceOfIIR
+
+
+
+for j in 1 2 3 4; do sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 150 0.0001 0.0002 30 $j differenceOfIIR ; done
+
+sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 100 1e-4 2e-4 40 2 differenceOfIIR
+
+
+for j in 9 8 7 6 5 4; do sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 150 1.1e-$j 0.1e-4 30 $j differenceOfIIR ; done
+
+
+for j in {50..55}; do sh run_temporal_on_test_videos.sh o3f_hmhm2_bg_qnoise_mix4_nl_n_t_ds3 bubble_cav_lab_3 150 0.0$j $((j)) 30 2 differenceOfIIR ; done
+
+
+diretório de saída no google colab
+out_dir2 = "/content/drive/MyDrive/deep_motion_mag/data/output/vids_out"
+
+
+call([DEFAULT_VIDEO_CONVERTER, '-y', '-f', 'image2', '-r', '30', '-i', os.path.join(out_dir, '%06d.png'), '-c:v', 'libx264', os.path.join(out_dir2,vid_name + '.mp4')]
+
+ffmpeg -y -f image2 -r 30 -i (out_dir + %06d.png) -c:v libx264 (out_dir2 + vidname +.mp4)
+
+
+sudo umount /mnt/d
+sudo mount -t drvfs D: /mnt/d
+
+
+he cat-based solution didn't work for me, but merging the files using zip -F file.zip --out file-large.zip and then unzip file-large.zip did work.

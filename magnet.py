@@ -1,7 +1,9 @@
 from __future__ import print_function
 
 import os
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 import numpy as np
 import cv2
 import time
@@ -20,8 +22,11 @@ from preprocessor import preprocess_image, preproc_color
 from data_loader import read_and_decode_3frames
 
 # Change here if you use ffmpeg.
-DEFAULT_VIDEO_CONVERTER = 'avconv'
+DEFAULT_VIDEO_CONVERTER = 'ffmpeg'
 
+out_dir2 = "/mnt/e/Gabriel/deep_motion_mag/data/output/vids_out"
+
+fps = '24'
 
 class MagNet3Frames(object):
 
@@ -250,9 +255,17 @@ class MagNet3Frames(object):
                 with 0 being no change.
             velocity_mag: if True, process video in Dynamic mode.
         """
+        head, tail = os.path.split(out_dir)
+        tail = tail + '_Amp{}_velocity_mag_{}'.format(amplification_factor, 
+                                                     velocity_mag)
+
+        out_dir = os.path.join(head, tail)
+        
         vid_name = os.path.basename(out_dir)
+
         # make folder
         mkdir(out_dir)
+        
         vid_frames = sorted(glob(os.path.join(vid_dir, '*.' + frame_ext)))
         first_frame = vid_frames[0]
         im = imread(first_frame)
@@ -284,6 +297,7 @@ class MagNet3Frames(object):
               os.path.join(out_dir, '%06d.png'), '-c:v', 'libx264',
               os.path.join(out_dir, vid_name + '.mp4')]
             )
+        
 
     # Temporal Operations
     def _build_IIR_filtering_graphs(self):
@@ -375,9 +389,10 @@ class MagNet3Frames(object):
                              '["fir", "butter", "differenceOfIIR"] got ' + \
                              filter_type)
         head, tail = os.path.split(out_dir)
-        tail = tail + '_fl{}_fh{}_fs{}_n{}_{}'.format(fl, fh, fs,
-                                                      n_filter_tap,
-                                                      filter_type)
+        tail = tail + '_Amp{}_fl{}_fh{}_fs{}_n{}_{}'.format(amplification_factor,
+                                                            fl, fh, fs,
+                                                            n_filter_tap,
+                                                            filter_type)
         out_dir = os.path.join(head, tail)
         vid_name = os.path.basename(out_dir)
         # make folder
@@ -506,9 +521,9 @@ class MagNet3Frames(object):
             del x_state
 
         # Try to combine it into a video
-        call([DEFAULT_VIDEO_CONVERTER, '-y', '-f', 'image2', '-r', '30', '-i',
+        call([DEFAULT_VIDEO_CONVERTER, '-y', '-f', 'image2', '-r', fs, '-i',
               os.path.join(out_dir, '%06d.png'), '-c:v', 'libx264',
-              os.path.join(out_dir, vid_name + '.mp4')]
+              os.path.join(out_dir2,vid_name + '.mp4')]
             )
 
     # Training code.
